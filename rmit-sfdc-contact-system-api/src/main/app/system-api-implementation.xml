@@ -11,7 +11,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
 
  <flow name="getContactFlow">
-        <logger message="Retrieve contact invoked" level="INFO" doc:name="Logger"/>
+        <logger message="Retrieve contact invoked #[message]" level="INFO" doc:name="Logger"/>
     <sfdc:query-single config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT Id, FirstName, LastName, MailingStreet, MailingCity, MailingPostalCode, MailingState, MailingCountry, Phone, Email FROM Contact WHERE Email = '#[message.inboundProperties[&quot;http.query.params&quot;].email]'" doc:name="Get Contact"/> 
         <choice doc:name="Does Contact Exist?">
             <when expression="#[payload != empty]">
