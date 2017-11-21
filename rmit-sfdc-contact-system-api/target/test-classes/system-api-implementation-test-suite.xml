@@ -12,6 +12,8 @@ http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/mu
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd">
+  
+ 
     <munit:config name="munit" doc:name="MUnit configuration"/>
     <apikit:config name="system-api-config" raml="system-api.raml" consoleEnabled="false" doc:name="Router"/>
       <sfdc:config name="Salesforce__Basic_Authentication" username="${sfdc.username}" password="${sfdc.password}" doc:name="Salesforce: Basic Authentication" securityToken="${sfdc.securityToken}" >
@@ -21,17 +23,29 @@ http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/moc
     <spring:beans>
         <spring:import resource="classpath:system-api-implementation.xml"/>
     </spring:beans>
-    <http:request-config name="HTTP_endpoints_Exposed" host="0.0.0.0" port="8081" basePath="api" doc:name="HTTP Request Configuration"/>
+    <http:request-config name="HTTP_Request_Configuration" host="0.0.0.0" port="8081" basePath="/api" doc:name="HTTP Request Configuration"/>
+  
     <munit:test name="system-api-implementation-test-suite-getContactFlowTest" description="Test">
-  <http:request config-ref="HTTP_endpoints_Exposed" path="/contact" method="GET" doc:name="HTTP">
+  <http:request config-ref="HTTP_Request_Configuration" path="/contact/" method="GET" doc:name="HTTP">
             <http:request-builder>
                 <http:query-param paramName="email" value="kunal@demo.com"/>
             </http:request-builder>
             <http:success-status-code-validator values="0..599"/>
         </http:request>
   <object-to-string-transformer doc:name="Object to String"/>
-        <flow-ref name="getContactFlow" doc:name="Flow Reference"/>
-        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
-        <logger level="INFO" doc:name="Logger"/>
+        <munit:assert-true message="status code doesnt match" condition="#[message.inboundProperties['http.status'] == '200']" doc:name="Assert True"/>
+
     </munit:test>
+    
+        <munit:test name="system-api-implementation-test-suite-getContactFlowTest-neagative-case" description="Test">
+            <http:request config-ref="HTTP_Request_Configuration" path="/contact/" method="GET" doc:name="HTTP">
+                <http:request-builder>
+                <http:query-param paramName="email" value="kunal@demo.co.au"/>
+                </http:request-builder>
+                <http:success-status-code-validator values="0..599"/>
+            </http:request>
+            <object-to-string-transformer doc:name="Object to String"/>
+        <munit:assert-true message="status code doesnt match" condition="#[message.inboundProperties['http.status'] == '404']" doc:name="Assert True"/>
+        </munit:test>
+   
 </mule>
